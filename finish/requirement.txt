@@ -1,0 +1,6 @@
+ flask_bootstrap
+ flask_wtf
+ flask_sqlalchemy
+ flask_login
+ email_validator
+ 
