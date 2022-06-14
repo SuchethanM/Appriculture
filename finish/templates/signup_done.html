@@ -35,8 +35,8 @@ Sign Up Done
     <div class="container">
 
       <div class="starter-template">
-        <h1>Your Account Has Been Successfully Created.</h1>
-        <p class="lead">Click here to Login</p>
+        <h1>Hi {{new_user.username}} !!! Your Account Has Been Successfully Created.</h1>
+        <p class="lead">Click here to <a href="{{ url_for('login') }}">Login</a></p>
       </div>
 
     </div><!-- /.container -->
