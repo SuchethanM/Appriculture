@@ -74,6 +74,7 @@ def signup():
             db.session.commit()
         except Exception as e:
             flash('Username or Email is already in use.','success')
+            print("enetrirjng-----------")
             return redirect(url_for('signup'))
             # return render_template('signup.html', exception=e)
         # #     raise e
