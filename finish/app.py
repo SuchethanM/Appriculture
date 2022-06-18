@@ -121,7 +121,7 @@ def predict_data():
             #here add to database all the values of the farmer with rtc number and it will redirect to dashboard for graph
             return redirect(url_for('dashboard',msg="Your value added to production"))
         # print(request.form.get("paswd"))
-        flash(f"thanks for submitting !!your value {res} ","success")
+        flash(f"thanks for submitting !!your value {res[0]} ","success")
         return render_template("predict_data.html",res=res)
     else:
         print("Not enetered",request.method)
@@ -179,14 +179,20 @@ def signup():
 
     return render_template('signup.html', form=form)
 
-@app.route('/dashboard')
-@app.route('/dashboard/<msg>')
+@app.route('/dashboard',methods=['GET', 'POST'])
+@app.route('/dashboard/<msg>',methods=['GET', 'POST'])
 @login_required
 def dashboard(msg=None):
     if msg:
         print(msg)
         flash(f"{msg}","warning")
-    return render_template('dashboard.html', name=current_user.username)
+    if request.method == "POST":
+        if request.form.get('rtc'):
+            return render_template('dashboard.html',name=current_user.username,predict=True)
+        else:
+            flash("please enter a valid RTC number ", "danger")
+            return render_template('dashboard.html',name=current_user.username,predict=False)
+    return render_template('dashboard.html', name=current_user.username,predict=False)
 
 @app.route('/logout')
 @login_required
