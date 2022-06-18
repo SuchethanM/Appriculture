@@ -8,8 +8,25 @@ Dashboard
 {{super()}}
 <link rel="stylesheet" href="{{url_for('.static', filename='dashboard.css')}}">
 {% endblock %}
-
+ 
 {% block content %}
+  <div class="">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                <center>{{ message }}</center>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+      </div>
+
+
+
+
+
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container-fluid">
         <div class="navbar-header">
@@ -34,6 +51,7 @@ Dashboard
       <div class="row">
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <h1 class="page-header">Welcome, {{ name }}</h1>
+           <a href="{{ url_for('predict_data') }}" class="btn btn-primary btn-lg active" role="button">predict here </a>
 
           <div class="row placeholders">
             <div class="col-xs-6 col-sm-3 placeholder">
