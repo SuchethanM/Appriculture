@@ -27,6 +27,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+d={"rtc":""}
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,8 +35,14 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
 
-# class Farmer(db.Model):
-    # rtc = db.Column(db.String(10))
+class Farmer(db.Model):
+    id = db.Column(db.Integer,primary_key=True)
+    rtc = db.Column(db.String(10))
+    crop = db.Column(db.String(50))
+
+    def __init__(self,rtc,crop):
+        self.rtc=rtc
+        self.crop=crop
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -99,10 +106,19 @@ def fetch_res():
 
     return []
 
-
+@app.route('/previous_crop',methods=['POST','GET'])
+def previous_crop():
+    if request.method=='POST':
+        print(request.form)
+        Farmer.query.filter_by(rtc=d['rtc']).delete()
+        db.session.commit()
+        for i in request.form:
+            print(i)
+    ## add this to production db and reduce the production value in the graph
+    return redirect(url_for('dashboard'))
 @app.route('/predict_data',methods=["POST","GET"])
 def predict_data():
-
+    # print(d)
     if request.method == "POST" :
         # print(request.form.get("em1"))
         print(request.form, len(request.form))
@@ -119,6 +135,13 @@ def predict_data():
         print(res)
         if len(request.form)>5:
             #here add to database all the values of the farmer with rtc number and it will redirect to dashboard for graph
+            # print("adding --------",d.get('rtc'),data[3])
+            far_data = Farmer(d.get('rtc'),request.form.get("Crop"))
+            db.session.add(far_data)
+            db.session.commit()
+            res = Farmer.query.all()
+            print(res)
+
             return redirect(url_for('dashboard',msg="Your value added to production"))
         # print(request.form.get("paswd"))
         flash(f"thanks for submitting !!your value {res[0]} ","success")
@@ -136,6 +159,8 @@ def predict_data():
 
 @app.route('/')
 def index():
+    res = Farmer.query.all()
+    print(res)
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -188,7 +213,13 @@ def dashboard(msg=None):
         flash(f"{msg}","warning")
     if request.method == "POST":
         if request.form.get('rtc'):
-            return render_template('dashboard.html',name=current_user.username,predict=True)
+            d["rtc"]=request.form.get('rtc')
+            res = Farmer.query.filter_by(rtc=d['rtc']).all()
+            if res:
+                print(res)
+                return render_template('dashboard.html',name=current_user.username,predict=True,res=res)
+            else:
+                return render_template('dashboard.html', name=current_user.username, predict=True)
         else:
             flash("please enter a valid RTC number ", "danger")
             return render_template('dashboard.html',name=current_user.username,predict=False)
@@ -201,4 +232,5 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    db.create_all()
     app.run(debug=True)

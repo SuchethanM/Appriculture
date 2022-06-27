@@ -24,9 +24,6 @@ Dashboard
       </div>
 
 
-
-
-
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container-fluid">
         <div class="navbar-header">
@@ -65,9 +62,28 @@ Dashboard
       <button type = "submit" class="btn btn-primary">Submit</button>
     </form>
     </div>
+    <hr>
+    {% if res %}
+    <div class="container">
+    <h3> Previously entered crops value , Enter this below ! of this rtc no - {{res[0].rtc}}</h3>
+      <form method="POST" action="{{ url_for('previous_crop') }}">
+        <div class="form-group">
+        {% for i in res %}
 
+          <label >Enter the value of {{i.crop}}</label>
+          <input type="text" class="form-control" placeholder="Enter production value" name={{i.crop}}>
+        {% endfor %}
+        </div>
+        <button type = "submit" class="btn btn-primary">Submit</button>
+      </form>
+
+    </div>
+    {% endif %}
+    <hr>
+    <div class="container">
     {% if predict %}
-    <a href="{{ url_for('predict_data') }}" class="btn btn-primary btn-lg active" role="button">predict here </a>
+            <a href="{{ url_for('predict_data') }}" class="btn btn-primary btn-lg active" role="button">predict here </a>
+    </div>
     {% endif %}
 
 
