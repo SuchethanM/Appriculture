@@ -37,6 +37,7 @@ Dashboard
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="{{ url_for('graph')}}"> graph </a></li>
             <li><a href="#">Dashboard</a></li>
             <li><a href="{{ url_for('logout') }}">Log Out</a></li>
           </ul>
@@ -71,7 +72,7 @@ Dashboard
         {% for i in res %}
 
           <label >Enter the value of {{i.crop}}</label>
-          <input type="text" class="form-control" placeholder="Enter production value" name={{i.crop}}>
+          <input type="number" class="form-control" placeholder="Enter production value" name={{i.crop}}>
         {% endfor %}
         </div>
         <button type = "submit" class="btn btn-primary">Submit</button>

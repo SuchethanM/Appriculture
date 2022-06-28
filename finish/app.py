@@ -28,6 +28,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 d={"rtc":""}
+crop_sel = {"Sugarcane": 0,"Rice":0,"Wheat":0,"Onion":0,"Ragi":0,"Jowar":0,"Tomato Maize":0}
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,6 +44,15 @@ class Farmer(db.Model):
     def __init__(self,rtc,crop):
         self.rtc=rtc
         self.crop=crop
+
+class Production(db.Model):
+    id = db.Column(db.Integer,primary_key=True)
+    crops = db.Column(db.String(50))
+    value = db.Column(db.Integer)
+
+    def __init__(self,crops,value):
+        self.crops = crops
+        self.value = value
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -60,6 +70,22 @@ class RegisterForm(FlaskForm):
     
     
 ########################################################
+def update_db(crop,res):
+    print(Production.query.all())
+    # print(crop)
+    ob = Production.query.filter_by(crops=crop).first()
+    # print(ob.crops,ob.value)
+
+    if ob:
+
+        ob.value = ob.value + res
+        db.session.commit()
+    else:
+        pre = Production(crop,res)
+        db.session.add(pre)
+        db.session.commit()
+
+
 def predict_production(data):
     fi = open("./ML_model_setup/major_project/pre_pro.pkl","rb")
     combined = pickle.load(fi)
@@ -112,10 +138,22 @@ def previous_crop():
         print(request.form)
         Farmer.query.filter_by(rtc=d['rtc']).delete()
         db.session.commit()
-        for i in request.form:
-            print(i)
+
+        for cr in request.form:
+            print(cr,request.form.get(cr),type(request.form.get(cr)))
+            ob = Production.query.filter_by(crops=cr).first()
+            print(ob)
+            v = float(request.form.get(cr))
+            if ob:
+                if abs(ob.value-v)>0:
+                    ob.value = ob.value - v
+                else:
+                    ob.value = v
+        db.session.commit()
+
     ## add this to production db and reduce the production value in the graph
     return redirect(url_for('dashboard'))
+
 @app.route('/predict_data',methods=["POST","GET"])
 def predict_data():
     # print(d)
@@ -133,18 +171,25 @@ def predict_data():
         data = data + ans
         res = predict_production(data)
         print(res)
-        if len(request.form)>5:
+        dup_check = Farmer.query.filter_by(rtc=d['rtc'],crop=request.form.get("Crop")).first()
+        # print(dup_check)
+        if len(request.form)>5 and not dup_check:
             #here add to database all the values of the farmer with rtc number and it will redirect to dashboard for graph
-            # print("adding --------",d.get('rtc'),data[3])
             far_data = Farmer(d.get('rtc'),request.form.get("Crop"))
             db.session.add(far_data)
             db.session.commit()
-            res = Farmer.query.all()
-            print(res)
+            # res = Farmer.query.all()
+            # print(res)
+
+            #Add the predicted value to DB for graph production
+            update_db(request.form.get("Crop"),res[0])
 
             return redirect(url_for('dashboard',msg="Your value added to production"))
+        else:
+            v=request.form.get("Crop")
+            flash(f"Cannot add same value as previous repeated !!{v}" , "warning")
         # print(request.form.get("paswd"))
-        flash(f"thanks for submitting !!your value {res[0]} ","success")
+        flash(f"thanks for submitting !!your expected production would be {res[0]} ","success")
         return render_template("predict_data.html",res=res)
     else:
         print("Not enetered",request.method)
@@ -230,6 +275,22 @@ def dashboard(msg=None):
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route('/graph')
+def graph():
+    # labels = ['sugarcane','rice','wheat','tomotao']
+    # data = [12,10,17,20]
+    labels = []
+    data=[]
+    ob = Production.query.all()
+    if ob:
+        for i in ob:
+            labels.append(i.crops)
+            data.append((i.value / 10000)*100)
+        print(labels,data)
+        return render_template("graph.html",labels=labels,data=data)
+    else:
+        return "No input"
 
 if __name__ == '__main__':
     db.create_all()
