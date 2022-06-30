@@ -28,7 +28,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 d={"rtc":""}
-crop_sel = {"Sugarcane": 0,"Rice":0,"Wheat":0,"Onion":0,"Ragi":0,"Jowar":0,"Tomato Maize":0}
+crop_sel = {"Sugarcane": 0,"Rice":0,"Wheat":0,"Onion":0,"Ragi":0,"Jowar":0,"Tomato":0,"Maize":0}
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -90,7 +90,7 @@ def predict_production(data):
     fi = open("./ML_model_setup/major_project/pre_pro.pkl","rb")
     combined = pickle.load(fi)
     fi.close()
-    print(data)
+    # print(data)
     print(combined)
     model = joblib.load("/home/amogha/Desktop/amogha_personal/work/random_forest.joblib")
     x = []
@@ -204,9 +204,30 @@ def predict_data():
 
 @app.route('/')
 def index():
-    res = Farmer.query.all()
-    print(res)
-    return render_template('index.html')
+    try:
+        f = open("data_wth.txt", "r")
+        data = f.read()
+        f.close()
+    except:
+        fetch_res()
+        f = open("data_wth.txt", "r")
+        data = f.read()
+        f.close()
+    mydi = ast.literal_eval(data)
+    arr = list(mydi.items())
+    cr_li = list(crop_sel.keys())
+    data = ["mysore","2022","Whole Year","","50"]+arr[-1][1]
+
+    res=[]
+    for i in cr_li:
+        data = ["mysore", "2022", "Whole Year", "", "50"] + arr[-1][1]
+        data[3]=i
+
+        r=predict_production(data)
+        res.append((r[0]/10000)*100)
+    print(cr_li,res)
+
+    return render_template('index.html',labels=cr_li,data=res)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

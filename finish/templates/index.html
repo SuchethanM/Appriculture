@@ -6,6 +6,7 @@ Demo App
 
 {% block styles %}
 {{super()}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 <link rel="stylesheet" href="{{url_for('.static', filename='starter-template.css')}}">
 {% endblock %}
 
@@ -34,9 +35,40 @@ Demo App
     <div class="container">
 
       <div class="starter-template">
-        <h1>Bootstrap starter template</h1>
-        <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
+        <h1>Top 10 most produced crops in next few days for the given area 50 sq</h1>
+        <p class="lead">Graph Indicates the production of crops for next ten days </p>
       </div>
 
     </div><!-- /.container -->
+      <div class="container">
+        <canvas id="myChart" width="800" height="500"></canvas>
+
+            </div>
+
+    <script>
+      var ctx = document.getElementById("myChart").getContext("2d")
+  var lineChart = new Chart(ctx,{
+                        type: "bar",
+                        data: {
+                            labels : {{ labels | safe }},
+                            datasets:[{
+                            label: "production",
+                            data : {{data | safe }}
+
+                            }]
+                           },
+                    options: {
+                    responsive: false,
+                    scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero:true,
+                                        max: 100
+                                    }
+                                }]
+                            }
+                   }
+                  });
+</script>
+    </script>
 {% endblock %}
